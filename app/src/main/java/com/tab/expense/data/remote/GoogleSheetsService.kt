@@ -27,6 +27,9 @@ class GoogleSheetsService(
      */
     suspend fun initialize(credentialsJson: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "Initializing Google Sheets service...")
+            Log.d(TAG, "Credentials length: ${credentialsJson.length}")
+
             val jsonInputStream = ByteArrayInputStream(credentialsJson.toByteArray())
             val credentials = GoogleCredentials
                 .fromStream(jsonInputStream)
@@ -46,7 +49,9 @@ class GoogleSheetsService(
             Log.d(TAG, "Google Sheets service initialized successfully")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize Google Sheets service", e)
+            Log.e(TAG, "Failed to initialize Google Sheets service: ${e.javaClass.simpleName}", e)
+            Log.e(TAG, "Error message: ${e.message}")
+            Log.e(TAG, "Error details: ${e.localizedMessage}")
             false
         }
     }
@@ -56,12 +61,30 @@ class GoogleSheetsService(
      */
     suspend fun testConnection(spreadsheetId: String, sheetName: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "Testing connection...")
+            Log.d(TAG, "Spreadsheet ID: $spreadsheetId")
+            Log.d(TAG, "Sheet name: $sheetName")
+
+            if (sheetsService == null) {
+                Log.e(TAG, "Sheets service is null!")
+                return@withContext false
+            }
+
             val range = "$sheetName!A1:A1"
-            sheetsService?.spreadsheets()?.values()?.get(spreadsheetId, range)?.execute()
-            Log.d(TAG, "Connection test successful")
+            Log.d(TAG, "Attempting to read range: $range")
+
+            val response = sheetsService?.spreadsheets()?.values()?.get(spreadsheetId, range)?.execute()
+            Log.d(TAG, "Connection test successful. Response: ${response?.getValues()?.size ?: 0} rows")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Connection test failed", e)
+            Log.e(TAG, "Connection test failed: ${e.javaClass.simpleName}", e)
+            Log.e(TAG, "Error message: ${e.message}")
+            Log.e(TAG, "Error details: ${e.localizedMessage}")
+            if (e.message?.contains("404") == true) {
+                Log.e(TAG, "Spreadsheet not found or service account doesn't have access")
+            } else if (e.message?.contains("403") == true) {
+                Log.e(TAG, "Permission denied - service account needs Editor access")
+            }
             false
         }
     }
