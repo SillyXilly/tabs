@@ -159,4 +159,57 @@ class ExpenseRepository @Inject constructor(
 
         return googleSheetsService.testConnection(spreadsheetId, sheetName)
     }
+
+    suspend fun fetchExpensesFromSheets(): List<Expense> {
+        val spreadsheetId = getSpreadsheetId() ?: return emptyList()
+        val sheetName = getSheetName() ?: return emptyList()
+        val credentials = getApiCredentials() ?: return emptyList()
+
+        if (!googleSheetsService.initialize(credentials)) {
+            return emptyList()
+        }
+
+        return googleSheetsService.fetchRecentExpenses(spreadsheetId, sheetName, limit = 30)
+    }
+
+    suspend fun syncExpensesFromSheets() {
+        val expenses = fetchExpensesFromSheets()
+        expenses.forEach { expense ->
+            // Check if expense already exists (by date, category, description, amount)
+            val existing = expenseDao.getAllExpenses().first().find {
+                it.date == expense.date &&
+                it.category == expense.category &&
+                it.description == expense.description &&
+                it.amountMVR == expense.amountMVR
+            }
+            if (existing == null) {
+                expenseDao.insertExpense(expense)
+            }
+        }
+    }
+
+    // Category operations
+    fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
+
+    suspend fun getCategoryById(id: String): Category? = categoryDao.getCategoryById(id)
+
+    suspend fun insertCategory(category: Category) = categoryDao.insertCategory(category)
+
+    suspend fun deleteCategory(category: Category) = categoryDao.deleteCategory(category)
+
+    suspend fun initializeDefaultCategories() {
+        val existingCategories = categoryDao.getAllCategories().first()
+        if (existingCategories.isEmpty()) {
+            val defaultCategories = listOf(
+                Category("food", "Food", "🍔", 1),
+                Category("transport", "Transport", "🚕", 2),
+                Category("shopping", "Shopping", "🛒", 3),
+                Category("health", "Health", "💊", 4),
+                Category("entertainment", "Entertainment", "🎮", 5),
+                Category("bills", "Bills", "🏠", 6),
+                Category("other", "Other", "📱", 7)
+            )
+            categoryDao.insertCategories(defaultCategories)
+        }
+    }
 }

@@ -18,6 +18,7 @@ data class SummaryUiState(
     val expenses: List<Expense> = emptyList(),
     val monthlyTotal: Double = 0.0,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val selectedMonth: Int = Calendar.getInstance().get(Calendar.MONTH),
     val selectedYear: Int = Calendar.getInstance().get(Calendar.YEAR)
 )
@@ -29,12 +30,14 @@ class SummaryViewModel @Inject constructor(
 
     private val _selectedMonth = MutableStateFlow(Calendar.getInstance().get(Calendar.MONTH))
     private val _selectedYear = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
+    private val _isRefreshing = MutableStateFlow(false)
 
     val uiState: StateFlow<SummaryUiState> = combine(
         _selectedMonth,
         _selectedYear,
+        _isRefreshing,
         repository.getAllExpenses()
-    ) { month, year, allExpenses ->
+    ) { month, year, isRefreshing, allExpenses ->
         val (startDate, endDate) = getMonthDateRange(month, year)
 
         val filteredExpenses = allExpenses.filter { expense ->
@@ -46,6 +49,7 @@ class SummaryViewModel @Inject constructor(
         SummaryUiState(
             expenses = filteredExpenses,
             monthlyTotal = total,
+            isRefreshing = isRefreshing,
             selectedMonth = month,
             selectedYear = year
         )
@@ -63,6 +67,19 @@ class SummaryViewModel @Inject constructor(
     fun syncToSheets() {
         viewModelScope.launch {
             repository.syncUnsyncedExpenses()
+        }
+    }
+
+    fun refreshExpenses() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                repository.syncExpensesFromSheets()
+            } catch (e: Exception) {
+                // Handle error silently
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 

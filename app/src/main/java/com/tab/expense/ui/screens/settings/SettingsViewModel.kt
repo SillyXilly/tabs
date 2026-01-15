@@ -2,6 +2,7 @@ package com.tab.expense.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tab.expense.data.local.entity.Category
 import com.tab.expense.data.repository.ExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -16,11 +17,14 @@ data class SettingsUiState(
     val sheetName: String = "",
     val apiCredentials: String = "",
     val allowedSenders: String = "",
+    val categories: List<Category> = emptyList(),
     val isLoading: Boolean = false,
     val isTesting: Boolean = false,
     val testResult: TestResult? = null,
     val saveSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showAddCategoryDialog: Boolean = false,
+    val showEditCategoryDialog: Category? = null
 )
 
 sealed class TestResult {
@@ -38,6 +42,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         loadSettings()
+        loadCategories()
     }
 
     private fun loadSettings() {
@@ -56,6 +61,15 @@ class SettingsViewModel @Inject constructor(
                 allowedSenders = allowedSenders,
                 isLoading = false
             )
+        }
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            repository.initializeDefaultCategories()
+            repository.getAllCategories().collect { categories ->
+                _uiState.value = _uiState.value.copy(categories = categories)
+            }
         }
     }
 
@@ -149,5 +163,52 @@ class SettingsViewModel @Inject constructor(
 
     fun clearTestResult() {
         _uiState.value = _uiState.value.copy(testResult = null)
+    }
+
+    // Category management
+    fun showAddCategoryDialog() {
+        _uiState.value = _uiState.value.copy(showAddCategoryDialog = true)
+    }
+
+    fun hideAddCategoryDialog() {
+        _uiState.value = _uiState.value.copy(showAddCategoryDialog = false)
+    }
+
+    fun showEditCategoryDialog(category: Category) {
+        _uiState.value = _uiState.value.copy(showEditCategoryDialog = category)
+    }
+
+    fun hideEditCategoryDialog() {
+        _uiState.value = _uiState.value.copy(showEditCategoryDialog = null)
+    }
+
+    fun addCategory(name: String, icon: String) {
+        viewModelScope.launch {
+            val id = name.lowercase().replace(" ", "_")
+            val maxOrder = _uiState.value.categories.maxOfOrNull { it.order } ?: 0
+            val category = Category(
+                id = id,
+                name = name,
+                icon = icon,
+                order = maxOrder + 1
+            )
+            repository.insertCategory(category)
+            hideAddCategoryDialog()
+        }
+    }
+
+    fun updateCategory(category: Category, newName: String, newIcon: String) {
+        viewModelScope.launch {
+            val updated = category.copy(name = newName, icon = newIcon)
+            repository.insertCategory(updated)
+            hideEditCategoryDialog()
+        }
+    }
+
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            repository.deleteCategory(category)
+            hideEditCategoryDialog()
+        }
     }
 }

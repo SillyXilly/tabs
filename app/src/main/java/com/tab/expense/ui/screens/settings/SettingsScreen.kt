@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,23 @@ fun SettingsScreen(
             }
             null -> {}
         }
+    }
+
+    // Category dialogs
+    if (uiState.showAddCategoryDialog) {
+        AddCategoryDialog(
+            onDismiss = { viewModel.hideAddCategoryDialog() },
+            onAdd = { name, icon -> viewModel.addCategory(name, icon) }
+        )
+    }
+
+    uiState.showEditCategoryDialog?.let { category ->
+        EditCategoryDialog(
+            category = category,
+            onDismiss = { viewModel.hideEditCategoryDialog() },
+            onUpdate = { name, icon -> viewModel.updateCategory(category, name, icon) },
+            onDelete = { viewModel.deleteCategory(category) }
+        )
     }
 
     // Show save success
@@ -213,6 +231,28 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // Categories Section
+            SectionHeader("Manage Categories")
+            Spacer(modifier = Modifier.height(15.dp))
+
+            uiState.categories.forEach { category ->
+                CategoryItem(
+                    category = category,
+                    onClick = { viewModel.showEditCategoryDialog(category) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            OutlinedButton(
+                onClick = { viewModel.showAddCategoryDialog() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("+ Add Category")
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
             // App Preferences Section
             SectionHeader("App Preferences")
             Spacer(modifier = Modifier.height(15.dp))
@@ -276,4 +316,171 @@ private fun SettingsItem(
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryItem(
+    category: com.tab.expense.data.local.entity.Category,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Text(
+                text = category.icon,
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(modifier = Modifier.width(15.dp))
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddCategoryDialog(
+    onDismiss: () -> Unit,
+    onAdd: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var icon by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add Category") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Category Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = icon,
+                    onValueChange = { icon = it },
+                    label = { Text("Emoji Icon") },
+                    placeholder = { Text("🎯") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank() && icon.isNotBlank()) {
+                        onAdd(name, icon)
+                    }
+                },
+                enabled = name.isNotBlank() && icon.isNotBlank()
+            ) {
+                Text("Add")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun EditCategoryDialog(
+    category: com.tab.expense.data.local.entity.Category,
+    onDismiss: () -> Unit,
+    onUpdate: (String, String) -> Unit,
+    onDelete: () -> Unit
+) {
+    var name by remember { mutableStateOf(category.name) }
+    var icon by remember { mutableStateOf(category.icon) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Delete Category?") },
+            text = { Text("Are you sure you want to delete \"${category.name}\"? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirm = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Category") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Category Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = icon,
+                    onValueChange = { icon = it },
+                    label = { Text("Emoji Icon") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(15.dp))
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete Category")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (name.isNotBlank() && icon.isNotBlank()) {
+                        onUpdate(name, icon)
+                    }
+                },
+                enabled = name.isNotBlank() && icon.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
