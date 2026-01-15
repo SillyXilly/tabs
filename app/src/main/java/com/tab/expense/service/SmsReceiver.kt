@@ -33,7 +33,6 @@ class SmsReceiver : BroadcastReceiver() {
                 Log.d(TAG, "SMS received from: $sender")
                 Log.d(TAG, "Message: $messageBody")
 
-                // Process SMS in coroutine
                 CoroutineScope(Dispatchers.IO).launch {
                     processSms(context, sender, messageBody)
                 }
@@ -42,25 +41,24 @@ class SmsReceiver : BroadcastReceiver() {
     }
 
     private suspend fun processSms(context: Context, sender: String, messageBody: String) {
-        // Check if sender is in allowed list
         if (!isAllowedSender(context, sender)) {
             Log.d(TAG, "Sender not in allowed list: $sender")
             return
         }
 
-        // Parse SMS
         val parsedExpense = SmsParser.parseSms(messageBody)
         if (parsedExpense != null) {
             Log.d(TAG, "Successfully parsed expense: $parsedExpense")
 
-            // Show notification
             NotificationService.showExpenseNotification(
                 context = context,
                 date = parsedExpense.date,
                 description = parsedExpense.description,
                 amount = parsedExpense.amount,
                 currency = parsedExpense.currency,
-                smsBody = messageBody
+                smsBody = messageBody,
+                originalAmount = parsedExpense.originalAmount,
+                originalCurrency = parsedExpense.originalCurrency
             )
         } else {
             Log.d(TAG, "Could not parse expense from SMS")
@@ -76,7 +74,6 @@ class SmsReceiver : BroadcastReceiver() {
             .first()
 
         if (allowedSenders.isBlank()) {
-            // If no allowed senders configured, allow all
             return true
         }
 

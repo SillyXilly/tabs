@@ -19,7 +19,9 @@ object NotificationService {
         description: String,
         amount: Double,
         currency: String,
-        smsBody: String
+        smsBody: String,
+        originalAmount: Double? = null,
+        originalCurrency: String? = null
     ) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -37,15 +39,25 @@ object NotificationService {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val formattedAmount = CurrencyConverter.formatAmount(amount, currency)
+        val displayAmount = if (originalAmount != null && originalCurrency != null) {
+            CurrencyConverter.formatAmount(originalAmount, originalCurrency)
+        } else {
+            CurrencyConverter.formatAmount(amount, currency)
+        }
+
+        val convertedAmount = if (originalAmount != null && originalCurrency != null && originalCurrency != currency) {
+            "\n(${CurrencyConverter.formatAmount(amount, currency)} MVR)"
+        } else {
+            ""
+        }
 
         val notification = NotificationCompat.Builder(context, TabApplication.EXPENSE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("💳 Expense Detected")
-            .setContentText("$formattedAmount at $description")
+            .setContentText("$displayAmount at $description")
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText("Amount: $formattedAmount\nMerchant: $description\n\nTap to review and save")
+                    .bigText("Amount: $displayAmount$convertedAmount\nMerchant: $description\n\nTap to review and save")
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
