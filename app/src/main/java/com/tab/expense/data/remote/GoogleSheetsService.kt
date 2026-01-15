@@ -30,7 +30,12 @@ class GoogleSheetsService(
             Log.d(TAG, "Initializing Google Sheets service...")
             Log.d(TAG, "Credentials length: ${credentialsJson.length}")
 
-            val jsonInputStream = ByteArrayInputStream(credentialsJson.toByteArray())
+            // Clean up the JSON string - remove any extra whitespace and ensure proper formatting
+            val cleanedJson = credentialsJson.trim()
+            Log.d(TAG, "First 50 chars: ${cleanedJson.take(50)}")
+            Log.d(TAG, "Last 50 chars: ${cleanedJson.takeLast(50)}")
+
+            val jsonInputStream = ByteArrayInputStream(cleanedJson.toByteArray(Charsets.UTF_8))
             val credentials = GoogleCredentials
                 .fromStream(jsonInputStream)
                 .createScoped(listOf("https://www.googleapis.com/auth/spreadsheets"))
