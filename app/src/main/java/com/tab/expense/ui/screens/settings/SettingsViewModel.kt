@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tab.expense.data.repository.ExpenseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -92,7 +93,7 @@ class SettingsViewModel @Inject constructor(
                 )
 
                 // Reset success flag after a delay
-                kotlinx.coroutines.delay(2000)
+                delay(2000)
                 _uiState.value = _uiState.value.copy(saveSuccess = false)
             } catch (e: Exception) {
                 _uiState.value = state.copy(
