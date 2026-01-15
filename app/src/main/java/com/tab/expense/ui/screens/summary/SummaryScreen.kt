@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -18,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.tab.expense.ui.components.ExpenseCard
 import com.tab.expense.util.CurrencyConverter
 import java.text.SimpleDateFormat
@@ -67,8 +68,10 @@ fun SummaryScreen(
             }
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
+        val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = uiState.isRefreshing)
+
+        SwipeRefresh(
+            state = swipeRefreshState,
             onRefresh = { viewModel.refreshExpenses() },
             modifier = Modifier
                 .fillMaxSize()
