@@ -1,18 +1,15 @@
 package com.tab.expense.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tab.expense.ui.screens.entry.ManualEntryScreen
+import com.tab.expense.ui.screens.settings.SettingsScreen
+import com.tab.expense.ui.screens.summary.SummaryScreen
 
 @Composable
 fun TabNavHost(
@@ -25,7 +22,7 @@ fun TabNavHost(
 
     LaunchedEffect(openExpenseConfirmation) {
         if (openExpenseConfirmation) {
-            // Navigate to expense confirmation screen
+            // Navigate to expense confirmation screen with pre-filled data
             navController.navigate("entry?date=$expenseDate&description=$expenseDescription&amount=$expenseAmount")
         }
     }
@@ -35,38 +32,33 @@ fun TabNavHost(
         startDestination = "summary"
     ) {
         composable("summary") {
-            // SummaryScreen(navController)
-            PlaceholderScreen("Summary Screen - Coming Soon")
+            SummaryScreen(navController = navController)
         }
 
         composable(
             route = "entry?date={date}&description={description}&amount={amount}",
             arguments = listOf(
-                navArgument("date") { type = NavType.LongType; defaultValue = 0L },
-                navArgument("description") { type = NavType.StringType; nullable = true },
-                navArgument("amount") { type = NavType.FloatType; defaultValue = 0f }
+                navArgument("date") {
+                    type = NavType.LongType
+                    defaultValue = 0L
+                },
+                navArgument("description") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("amount") {
+                    type = NavType.FloatType
+                    defaultValue = 0f
+                }
             )
         ) {
-            // ManualEntryScreen(navController, ...)
-            PlaceholderScreen("Entry Screen - Coming Soon")
+            // TODO: Handle pre-filled data from SMS notification
+            ManualEntryScreen(navController = navController)
         }
 
         composable("settings") {
-            // SettingsScreen(navController)
-            PlaceholderScreen("Settings Screen - Coming Soon")
+            SettingsScreen(navController = navController)
         }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(text: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.headlineMedium
-        )
     }
 }
