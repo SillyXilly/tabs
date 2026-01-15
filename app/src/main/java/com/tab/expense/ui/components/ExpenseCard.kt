@@ -13,6 +13,7 @@ import com.tab.expense.util.CurrencyConverter
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseCard(
     expense: Expense,
