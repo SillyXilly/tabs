@@ -22,7 +22,6 @@ fun TabNavHost(
 
     LaunchedEffect(openExpenseConfirmation) {
         if (openExpenseConfirmation) {
-            // Navigate to expense confirmation screen with pre-filled data
             navController.navigate("entry?date=$expenseDate&description=$expenseDescription&amount=$expenseAmount")
         }
     }
@@ -52,9 +51,17 @@ fun TabNavHost(
                     defaultValue = 0f
                 }
             )
-        ) {
-            // TODO: Handle pre-filled data from SMS notification
-            ManualEntryScreen(navController = navController)
+        ) { backStackEntry ->
+            val date = backStackEntry.arguments?.getLong("date") ?: 0L
+            val description = backStackEntry.arguments?.getString("description")
+            val amount = backStackEntry.arguments?.getFloat("amount") ?: 0f
+
+            ManualEntryScreen(
+                navController = navController,
+                prefilledDate = if (date > 0) date else null,
+                prefilledDescription = description,
+                prefilledAmount = if (amount > 0) amount.toDouble() else null
+            )
         }
 
         composable("settings") {

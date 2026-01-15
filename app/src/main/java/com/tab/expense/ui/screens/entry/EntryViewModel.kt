@@ -137,4 +137,12 @@ class EntryViewModel @Inject constructor(
             selectedCategory = _uiState.value.categories.firstOrNull()
         )
     }
+
+    fun prefillData(date: Long? = null, description: String? = null, amount: Double? = null) {
+        _uiState.value = _uiState.value.copy(
+            date = date ?: _uiState.value.date,
+            description = description ?: _uiState.value.description,
+            amount = amount?.toString() ?: _uiState.value.amount
+        )
+    }
 }

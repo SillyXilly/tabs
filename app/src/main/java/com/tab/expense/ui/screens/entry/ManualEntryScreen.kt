@@ -25,9 +25,23 @@ import java.util.*
 @Composable
 fun ManualEntryScreen(
     navController: NavController,
-    viewModel: EntryViewModel = hiltViewModel()
+    viewModel: EntryViewModel = hiltViewModel(),
+    prefilledDate: Long? = null,
+    prefilledDescription: String? = null,
+    prefilledAmount: Double? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Pre-fill data from SMS notification
+    LaunchedEffect(prefilledDate, prefilledDescription, prefilledAmount) {
+        if (prefilledDate != null || prefilledDescription != null || prefilledAmount != null) {
+            viewModel.prefillData(
+                date = prefilledDate,
+                description = prefilledDescription,
+                amount = prefilledAmount
+            )
+        }
+    }
 
     // Navigate back when saved
     LaunchedEffect(uiState.isSaved) {
