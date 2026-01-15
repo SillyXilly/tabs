@@ -1,0 +1,45 @@
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto
+
+# The above will handle all files NOT found below
+# These files are text and should be normalized (Convert crlf => lf)
+*.java text
+*.kt text
+*.kts text
+*.gradle text
+*.properties text
+*.xml text
+*.json text
+*.md text
+*.txt text
+*.sh text eol=lf
+gradlew text eol=lf
+
+# These files are binary and should be left untouched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+*.pyc binary
+*.pdf binary
+*.ez binary
+*.bz2 binary
+*.apk binary
+*.aab binary
+*.jar binary
+*.so binary

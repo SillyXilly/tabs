@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tab</string>
+
+    <!-- Screen Titles -->
+    <string name="summary_title">Summary</string>
+    <string name="add_expense_title">Add Expense</string>
+    <string name="settings_title">Settings</string>
+    <string name="confirm_expense_title">Confirm Expense</string>
+
+    <!-- Summary Screen -->
+    <string name="total_spent_month">Total Spent This Month</string>
+    <string name="recent_expenses">Recent Expenses</string>
+    <string name="no_expenses">No expenses yet</string>
+
+    <!-- Form Labels -->
+    <string name="label_date">Date</string>
+    <string name="label_category">Category</string>
+    <string name="label_description">Description</string>
+    <string name="label_currency">Currency</string>
+    <string name="label_amount">Amount</string>
+    <string name="label_amount_mvr">Amount (MVR)</string>
+
+    <!-- Form Hints -->
+    <string name="hint_description">What did you buy?</string>
+    <string name="hint_amount">0.00</string>
+
+    <!-- Buttons -->
+    <string name="btn_add_expense">Add Expense</string>
+    <string name="btn_save_expense">Save Expense</string>
+    <string name="btn_ignore">Ignore</string>
+    <string name="btn_save">Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_test_connection">Save &amp; Test Connection</string>
+    <string name="btn_manage_numbers">Manage Numbers</string>
+
+    <!-- Categories -->
+    <string name="category_food">🍔 Food</string>
+    <string name="category_transport">🚕 Transport</string>
+    <string name="category_shopping">🛒 Shopping</string>
+    <string name="category_health">💊 Health</string>
+    <string name="category_entertainment">🎮 Entertainment</string>
+    <string name="category_bills">🏠 Bills</string>
+    <string name="category_other">📱 Other</string>
+
+    <!-- Currency -->
+    <string name="currency_mvr">MVR</string>
+    <string name="currency_usd">USD</string>
+    <string name="currency_info">💡 USD amounts will be converted to MVR (×15.42)</string>
+
+    <!-- Settings -->
+    <string name="settings_google_sheets">Google Sheets Integration</string>
+    <string name="settings_sms_automation">SMS Automation</string>
+    <string name="settings_app_preferences">App Preferences</string>
+
+    <string name="label_spreadsheet_id">Spreadsheet ID</string>
+    <string name="hint_spreadsheet_id">1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms</string>
+
+    <string name="label_sheet_name">Sheet Name</string>
+    <string name="hint_sheet_name">Expenses</string>
+
+    <string name="label_api_credentials">API Credentials (JSON)</string>
+    <string name="hint_api_credentials">Paste your service account JSON here</string>
+
+    <string name="label_allowed_senders">Allowed Sender Numbers</string>
+    <string name="label_default_currency">Default Currency</string>
+    <string name="label_theme">Theme</string>
+
+    <string name="subtitle_theme">System Default</string>
+    <string name="subtitle_default_currency">MVR (Maldivian Rufiyaa)</string>
+
+    <!-- SMS Notification -->
+    <string name="sms_expense_detected">💳 Expense Detected from SMS</string>
+    <string name="sms_from">From:</string>
+    <string name="sms_message">Message:</string>
+
+    <!-- Permissions -->
+    <string name="permission_sms_title">SMS Permission Required</string>
+    <string name="permission_sms_message">Tab needs access to your SMS to automatically detect expenses from bank notifications.</string>
+    <string name="permission_notification_title">Notification Permission Required</string>
+    <string name="permission_notification_message">Tab needs permission to send notifications when expenses are detected.</string>
+
+    <!-- Messages -->
+    <string name="msg_expense_added">Expense added successfully</string>
+    <string name="msg_expense_saved">Expense saved</string>
+    <string name="msg_settings_saved">Settings saved</string>
+    <string name="msg_connection_success">Connected to Google Sheets successfully</string>
+    <string name="msg_connection_failed">Failed to connect. Please check your credentials.</string>
+
+    <!-- Errors -->
+    <string name="error_empty_description">Please enter a description</string>
+    <string name="error_empty_amount">Please enter an amount</string>
+    <string name="error_invalid_amount">Please enter a valid amount</string>
+    <string name="error_sync_failed">Failed to sync with Google Sheets</string>
+</resources>
