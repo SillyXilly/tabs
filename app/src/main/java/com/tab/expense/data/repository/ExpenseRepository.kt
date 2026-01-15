@@ -51,10 +51,6 @@ class ExpenseRepository @Inject constructor(
         expenseDao.deleteExpense(expense)
     }
 
-    // Category operations
-    fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
-
-    suspend fun getCategoryById(id: String): Category? = categoryDao.getCategoryById(id)
 
     // Sync operations
     suspend fun syncUnsyncedExpenses(): Boolean {
