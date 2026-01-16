@@ -33,7 +33,9 @@
       "Bash(where gh:*)",
       "Bash(wc:*)",
       "Bash(git -C /d/Projects/tabs log --oneline)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(ExpenseRepository)",
+      "Bash(SyncExpenseWorker\"\n\nExpected behavior:\n- Edit: Expense updates locally, shows \"Syncing\", then syncs to Sheets\n- Delete: Expense removes from app, stays in Sheets as historical data\n\nVersion: 1.1.1-edit-sync-logs\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }

@@ -98,15 +98,45 @@ class ExpenseRepository @Inject constructor(
     }
 
     suspend fun updateExpense(expense: Expense) {
-        expenseDao.updateExpense(expense)
+        android.util.Log.d("ExpenseRepository", "=== UPDATE EXPENSE START ===")
+        android.util.Log.d("ExpenseRepository", "Updating expense: id=${expense.id}, desc=${expense.description}, amount=${expense.amountMVR}")
+
+        // Mark as unsynced so it will be re-synced to Google Sheets
+        val unsyncedExpense = expense.copy(
+            isSynced = false,
+            updatedAt = System.currentTimeMillis()
+        )
+
+        expenseDao.updateExpense(unsyncedExpense)
+        android.util.Log.d("ExpenseRepository", "✓ Expense updated in local DB with isSynced=false")
+
+        // Queue WorkManager job to sync the updated expense
+        android.util.Log.d("ExpenseRepository", "Queueing WorkManager sync job for updated expense ${expense.id}")
+        queueSyncWork(expense.id)
+
+        android.util.Log.d("ExpenseRepository", "=== UPDATE EXPENSE END ===")
     }
 
     suspend fun deleteExpense(expense: Expense) {
+        android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE (by object) START ===")
+        android.util.Log.d("ExpenseRepository", "Deleting expense: id=${expense.id}, desc=${expense.description}")
+
         expenseDao.deleteExpense(expense)
+
+        android.util.Log.d("ExpenseRepository", "✓ Expense deleted from local DB")
+        android.util.Log.d("ExpenseRepository", "Note: Expense remains in Google Sheets (historical data)")
+        android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE END ===")
     }
 
     suspend fun deleteExpenseById(id: Long) {
+        android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE (by ID) START ===")
+        android.util.Log.d("ExpenseRepository", "Deleting expense ID: $id")
+
         expenseDao.deleteExpenseById(id)
+
+        android.util.Log.d("ExpenseRepository", "✓ Expense deleted from local DB")
+        android.util.Log.d("ExpenseRepository", "Note: Expense remains in Google Sheets (historical data)")
+        android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE END ===")
     }
 
 

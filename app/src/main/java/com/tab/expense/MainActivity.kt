@@ -66,8 +66,8 @@ class MainActivity : ComponentActivity() {
 
         // Log app version for debugging
         android.util.Log.d("MainActivity", "========================================")
-        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.1.0-edit-delete")
-        android.util.Log.d("MainActivity", "Edit and Delete Features Added")
+        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.1.1-edit-sync-logs")
+        android.util.Log.d("MainActivity", "Edit Sync Fix + Comprehensive Logging")
         android.util.Log.d("MainActivity", "========================================")
 
         requestPermissionsIfNeeded()
