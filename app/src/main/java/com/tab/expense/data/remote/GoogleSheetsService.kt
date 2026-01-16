@@ -295,7 +295,9 @@ class GoogleSheetsService(
             )
 
             val requestBody = com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest()
-                .setRequests(requests.map { com.google.api.services.sheets.v4.model.Request().setUnknownKeys(it) })
+                .setRequests(requests.map {
+                    com.google.api.services.sheets.v4.model.Request().also { req -> req.setUnknownKeys(it) }
+                })
 
             sheetsService?.spreadsheets()?.batchUpdate(spreadsheetId, requestBody)?.execute()
 
