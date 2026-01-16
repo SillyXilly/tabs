@@ -74,7 +74,7 @@ class SummaryViewModel @Inject constructor(
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                repository.syncExpensesFromSheets()
+                repository.refreshFromSheets()
             } catch (e: Exception) {
                 // Handle error silently
             } finally {

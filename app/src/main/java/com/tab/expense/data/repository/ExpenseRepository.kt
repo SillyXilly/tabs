@@ -38,9 +38,22 @@ class ExpenseRepository @Inject constructor(
     suspend fun getExpenseById(id: Long): Expense? = expenseDao.getExpenseById(id)
 
     suspend fun insertExpense(expense: Expense): Long {
-        val id = expenseDao.insertExpense(expense)
-        syncExpenseToSheets(expense.copy(id = id))
-        return id
+        // Normalize date to midnight (ignore time)
+        val normalizedExpense = expense.copy(date = normalizeToMidnight(expense.date))
+
+        // Save to Google Sheets first
+        val success = syncExpenseToSheets(normalizedExpense)
+
+        if (success) {
+            // Clear local DB and refresh from Sheets to ensure consistency
+            android.util.Log.d("ExpenseRepository", "Expense saved to Sheets, refreshing from Sheets")
+            refreshFromSheets()
+            return 0L // ID will be assigned from Sheets
+        } else {
+            // Fallback: save locally if Sheets sync fails
+            android.util.Log.w("ExpenseRepository", "Sheets sync failed, saving locally")
+            return expenseDao.insertExpense(normalizedExpense)
+        }
     }
 
     suspend fun updateExpense(expense: Expense) {
@@ -74,32 +87,32 @@ class ExpenseRepository @Inject constructor(
         return success
     }
 
-    private suspend fun syncExpenseToSheets(expense: Expense) {
+    private suspend fun syncExpenseToSheets(expense: Expense): Boolean {
         try {
-            android.util.Log.d("ExpenseRepository", "Attempting to sync expense: id=${expense.id}, desc=${expense.description}, amount=${expense.amountMVR}")
+            android.util.Log.d("ExpenseRepository", "Attempting to sync expense: desc=${expense.description}, amount=${expense.amountMVR}")
 
             val spreadsheetId = getSpreadsheetId()
             if (spreadsheetId == null) {
                 android.util.Log.w("ExpenseRepository", "Sync skipped: No spreadsheet ID configured")
-                return
+                return false
             }
 
             val sheetName = getSheetName()
             if (sheetName == null) {
                 android.util.Log.w("ExpenseRepository", "Sync skipped: No sheet name configured")
-                return
+                return false
             }
 
             val credentials = getApiCredentials()
             if (credentials == null) {
                 android.util.Log.w("ExpenseRepository", "Sync skipped: No API credentials configured")
-                return
+                return false
             }
 
             android.util.Log.d("ExpenseRepository", "Initializing Google Sheets service")
             if (!googleSheetsService.initialize(credentials)) {
                 android.util.Log.e("ExpenseRepository", "Failed to initialize Google Sheets service")
-                return
+                return false
             }
 
             android.util.Log.d("ExpenseRepository", "Ensuring header row exists")
@@ -108,15 +121,44 @@ class ExpenseRepository @Inject constructor(
             android.util.Log.d("ExpenseRepository", "Appending expense to sheet: $sheetName")
             val success = googleSheetsService.appendExpense(spreadsheetId, sheetName, expense)
             if (success) {
-                android.util.Log.d("ExpenseRepository", "Successfully synced expense ${expense.id}")
-                expenseDao.markAsSynced(expense.id)
+                android.util.Log.d("ExpenseRepository", "Successfully synced expense to Sheets")
             } else {
                 android.util.Log.e("ExpenseRepository", "Failed to append expense to sheet")
             }
+            return success
         } catch (e: Exception) {
             android.util.Log.e("ExpenseRepository", "Exception during sync: ${e.message}", e)
-            // Expense will remain unsynced and will be synced later
+            return false
         }
+    }
+
+    suspend fun refreshFromSheets() {
+        try {
+            android.util.Log.d("ExpenseRepository", "Refreshing from Sheets: clearing local DB")
+            // Clear all local expenses
+            expenseDao.deleteAllExpenses()
+
+            // Fetch from Sheets
+            val expenses = fetchExpensesFromSheets()
+            android.util.Log.d("ExpenseRepository", "Fetched ${expenses.size} expenses from Sheets")
+
+            // Insert all fetched expenses
+            expenses.forEach { expense ->
+                expenseDao.insertExpense(expense)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ExpenseRepository", "Error refreshing from Sheets: ${e.message}", e)
+        }
+    }
+
+    private fun normalizeToMidnight(timestamp: Long): Long {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.timeInMillis = timestamp
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
     }
 
     // Settings operations
@@ -192,38 +234,6 @@ class ExpenseRepository @Inject constructor(
         return googleSheetsService.fetchRecentExpenses(spreadsheetId, sheetName, limit = 30)
     }
 
-    suspend fun syncExpensesFromSheets() {
-        val expenses = fetchExpensesFromSheets()
-        val allLocalExpenses = expenseDao.getAllExpenses().first()
-
-        expenses.forEach { expense ->
-            // Check if expense already exists (by date, category, description, amount)
-            // We consider it a duplicate if:
-            // 1. Same date (within same day)
-            // 2. Same category
-            // 3. Same description
-            // 4. Same amount
-            // This prevents duplicates from being inserted when fetching from Sheets
-            val isDuplicate = allLocalExpenses.any { local ->
-                local.category == expense.category &&
-                local.description.equals(expense.description, ignoreCase = true) &&
-                kotlin.math.abs(local.amountMVR - expense.amountMVR) < 0.01 &&
-                isSameDay(local.date, expense.date)
-            }
-
-            if (!isDuplicate) {
-                // Mark as synced since it came from Sheets
-                expenseDao.insertExpense(expense.copy(isSynced = true))
-            }
-        }
-    }
-
-    private fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
-        val cal1 = java.util.Calendar.getInstance().apply { timeInMillis = timestamp1 }
-        val cal2 = java.util.Calendar.getInstance().apply { timeInMillis = timestamp2 }
-        return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
-               cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR)
-    }
 
     // Category operations
     fun getAllCategories(): Flow<List<Category>> = categoryDao.getAllCategories()
