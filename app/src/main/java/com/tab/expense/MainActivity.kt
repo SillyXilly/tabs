@@ -33,6 +33,15 @@ class MainActivity : ComponentActivity() {
     companion object {
         private val _pendingNavigation = MutableStateFlow<PendingNavEvent?>(null)
         val pendingNavigation = _pendingNavigation.asStateFlow()
+
+        /**
+         * Clear the pending navigation event after it has been handled
+         * This prevents re-navigation on recomposition
+         */
+        fun clearPendingNavigation() {
+            android.util.Log.d("MainActivity", "Clearing pending navigation event")
+            _pendingNavigation.value = null
+        }
     }
 
     private val permissionLauncher = registerForActivityResult(

@@ -24,9 +24,13 @@ fun TabNavHost() {
     LaunchedEffect(pendingNav) {
         pendingNav?.let { event ->
             android.util.Log.d("TabNavHost", "Navigating to entry with prefilled data")
-            navController.navigate("entry?date=${event.date}&description=${event.description}&amount=${event.amount}")
-            // Clear the event after navigation
-            // Note: We don't clear here to avoid re-navigation issues
+            // Navigate to entry screen with prefilled data
+            navController.navigate("entry?date=${event.date}&description=${event.description}&amount=${event.amount}") {
+                // Clear any existing entry screens to avoid stack buildup
+                launchSingleTop = true
+            }
+            // CRITICAL: Clear the event after navigation to prevent re-navigation on recomposition
+            MainActivity.clearPendingNavigation()
         }
     }
 
