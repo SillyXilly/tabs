@@ -50,7 +50,7 @@ class SettingsViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             val spreadsheetId = repository.getSpreadsheetId() ?: ""
-            val sheetName = repository.getSheetName() ?: ""
+            val sheetName = repository.getSheetName() ?: "Expenses"  // Default to "Expenses"
             val apiCredentials = repository.getApiCredentials() ?: ""
             val allowedSenders = repository.getAllowedSenders() ?: ""
 

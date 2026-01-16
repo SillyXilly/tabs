@@ -13,8 +13,8 @@ android {
         applicationId = "com.tab.expense"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.1.1-edit-sync-logs"
+        versionCode = 7
+        versionName = "1.2.0-id-based-sync"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

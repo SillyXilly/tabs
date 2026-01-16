@@ -82,8 +82,8 @@ class SyncExpenseWorker @AssistedInject constructor(
             Log.d(TAG, "Ensuring header row exists")
             googleSheetsService.ensureHeaderRow(spreadsheetId, sheetName)
 
-            Log.d(TAG, "Appending expense to sheet")
-            val success = googleSheetsService.appendExpense(spreadsheetId, sheetName, expense)
+            Log.d(TAG, "Syncing expense to sheet (update if exists, append if new)")
+            val success = googleSheetsService.updateExpense(spreadsheetId, sheetName, expense)
 
             return if (success) {
                 Log.d(TAG, "✓ Successfully synced expense $expenseId to Google Sheets")

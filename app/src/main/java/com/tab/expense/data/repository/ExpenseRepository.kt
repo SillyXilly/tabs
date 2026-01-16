@@ -132,10 +132,35 @@ class ExpenseRepository @Inject constructor(
         android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE (by ID) START ===")
         android.util.Log.d("ExpenseRepository", "Deleting expense ID: $id")
 
+        // Delete from local DB first
         expenseDao.deleteExpenseById(id)
-
         android.util.Log.d("ExpenseRepository", "✓ Expense deleted from local DB")
-        android.util.Log.d("ExpenseRepository", "Note: Expense remains in Google Sheets (historical data)")
+
+        // Try to delete from Google Sheets
+        try {
+            val spreadsheetId = getSpreadsheetId()
+            val sheetName = getSheetName()
+            val credentials = getApiCredentials()
+
+            if (spreadsheetId != null && sheetName != null && credentials != null) {
+                android.util.Log.d("ExpenseRepository", "Deleting expense from Google Sheets")
+                if (googleSheetsService.initialize(credentials)) {
+                    val success = googleSheetsService.deleteExpense(spreadsheetId, sheetName, id)
+                    if (success) {
+                        android.util.Log.d("ExpenseRepository", "✓ Expense deleted from Google Sheets")
+                    } else {
+                        android.util.Log.w("ExpenseRepository", "Failed to delete from Google Sheets (may not exist)")
+                    }
+                } else {
+                    android.util.Log.w("ExpenseRepository", "Failed to initialize Google Sheets service")
+                }
+            } else {
+                android.util.Log.w("ExpenseRepository", "Sheets not configured - skipping remote delete")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ExpenseRepository", "Exception deleting from Sheets: ${e.message}", e)
+        }
+
         android.util.Log.d("ExpenseRepository", "=== DELETE EXPENSE END ===")
     }
 
