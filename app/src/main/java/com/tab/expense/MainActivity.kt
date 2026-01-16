@@ -18,9 +18,22 @@ import com.tab.expense.ui.navigation.TabNavHost
 import com.tab.expense.ui.theme.TabTheme
 import com.tab.expense.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+data class PendingNavEvent(
+    val date: Long,
+    val description: String?,
+    val amount: Double
+)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        private val _pendingNavigation = MutableStateFlow<PendingNavEvent?>(null)
+        val pendingNavigation = _pendingNavigation.asStateFlow()
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -44,13 +57,16 @@ class MainActivity : ComponentActivity() {
 
         requestPermissionsIfNeeded()
 
+        // Handle initial intent on cold start
+        handleIncomingIntent(intent)
+
         setContent {
             TabTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    handleIntentAndNavigate()
+                    TabNavHost()
                 }
             }
         }
@@ -59,21 +75,24 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         intent?.let {
-            android.util.Log.d("MainActivity", "onNewIntent called with expense data")
+            android.util.Log.d("MainActivity", "onNewIntent called - using StateFlow navigation")
             setIntent(it)
-            // Recreate to trigger recomposition with new intent
-            recreate()
+            // DON'T recreate()! Use StateFlow to trigger navigation instead
+            handleIncomingIntent(it)
         }
     }
 
-    @Composable
-    private fun handleIntentAndNavigate() {
-        TabNavHost(
-            openExpenseConfirmation = intent.getBooleanExtra("open_expense_confirmation", false),
-            expenseDate = intent.getLongExtra(Constants.EXTRA_EXPENSE_DATE, System.currentTimeMillis()),
-            expenseDescription = intent.getStringExtra(Constants.EXTRA_EXPENSE_DESCRIPTION),
-            expenseAmount = intent.getDoubleExtra(Constants.EXTRA_EXPENSE_AMOUNT, 0.0)
-        )
+    private fun handleIncomingIntent(intent: Intent?) {
+        intent?.let {
+            if (it.getBooleanExtra("open_expense_confirmation", false)) {
+                android.util.Log.d("MainActivity", "Emitting pending navigation event")
+                _pendingNavigation.value = PendingNavEvent(
+                    date = it.getLongExtra(Constants.EXTRA_EXPENSE_DATE, System.currentTimeMillis()),
+                    description = it.getStringExtra(Constants.EXTRA_EXPENSE_DESCRIPTION),
+                    amount = it.getDoubleExtra(Constants.EXTRA_EXPENSE_AMOUNT, 0.0)
+                )
+            }
+        }
     }
 
     private fun requestPermissionsIfNeeded() {

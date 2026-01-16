@@ -4,19 +4,19 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.work.*
 import com.tab.expense.data.local.database.ExpenseDao
 import com.tab.expense.data.local.database.CategoryDao
 import com.tab.expense.data.local.entity.Expense
 import com.tab.expense.data.local.entity.Category
 import com.tab.expense.data.remote.GoogleSheetsService
 import com.tab.expense.util.Constants
+import com.tab.expense.worker.SyncExpenseWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,34 +45,58 @@ class ExpenseRepository @Inject constructor(
         android.util.Log.d("ExpenseRepository", "Expense details: desc=${expense.description}, amount=${expense.amountMVR}, date=${expense.date}")
 
         // Normalize date to midnight (ignore time)
-        val normalizedExpense = expense.copy(date = normalizeToMidnight(expense.date))
+        val normalizedExpense = expense.copy(
+            date = normalizeToMidnight(expense.date),
+            isSynced = false  // Mark as not synced yet
+        )
         android.util.Log.d("ExpenseRepository", "Date normalized to midnight: ${normalizedExpense.date}")
 
         // Save to local DB immediately (fast, always works)
         val id = expenseDao.insertExpense(normalizedExpense)
         android.util.Log.d("ExpenseRepository", "✓ Expense saved to local DB with ID: $id")
 
-        // Sync to Google Sheets in background (don't block user)
-        android.util.Log.d("ExpenseRepository", "Starting background sync to Google Sheets...")
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val syncSuccess = syncExpenseToSheets(normalizedExpense.copy(id = id))
-                if (syncSuccess) {
-                    android.util.Log.d("ExpenseRepository", "✓ Background sync successful")
-                    // After successful sync, clear local DB and refresh from Sheets
-                    android.util.Log.d("ExpenseRepository", "Triggering refresh from Sheets...")
-                    refreshFromSheets()
-                    android.util.Log.d("ExpenseRepository", "✓ Refresh completed")
-                } else {
-                    android.util.Log.w("ExpenseRepository", "⚠ Background sync failed, expense will be synced later")
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("ExpenseRepository", "✗ Background sync exception: ${e.message}", e)
-            }
-        }
+        // Queue WorkManager job for reliable background sync
+        android.util.Log.d("ExpenseRepository", "Queueing WorkManager sync job for expense $id")
+        queueSyncWork(id)
 
         android.util.Log.d("ExpenseRepository", "=== INSERT EXPENSE END (ID: $id) ===")
         return id
+    }
+
+    /**
+     * Queue a WorkManager job to sync the expense to Google Sheets
+     *
+     * Benefits over CoroutineScope:
+     * - Survives app restarts and process deaths
+     * - Automatic retry with exponential backoff
+     * - Only runs when network is available
+     * - Guaranteed execution
+     */
+    private fun queueSyncWork(expenseId: Long) {
+        val workRequest = OneTimeWorkRequestBuilder<SyncExpenseWorker>()
+            .setInputData(
+                workDataOf(SyncExpenseWorker.KEY_EXPENSE_ID to expenseId)
+            )
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                10,
+                TimeUnit.SECONDS
+            )
+            .build()
+
+        val workManager = WorkManager.getInstance(context)
+        workManager.enqueueUniqueWork(
+            "${SyncExpenseWorker.WORK_NAME_PREFIX}$expenseId",
+            ExistingWorkPolicy.REPLACE,
+            workRequest
+        )
+
+        android.util.Log.d("ExpenseRepository", "✓ WorkManager sync job queued for expense $expenseId")
     }
 
     suspend fun updateExpense(expense: Expense) {

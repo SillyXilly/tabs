@@ -42,12 +42,33 @@ fun ExpenseCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = getCategoryEmoji(expense.category) + " " + expense.category.uppercase(),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = getCategoryEmoji(expense.category) + " " + expense.category.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Sync status indicator
+                    if (!expense.isSynced) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer
+                        ) {
+                            Text(
+                                text = "⏳ Syncing",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -66,12 +87,26 @@ fun ExpenseCard(
                 )
             }
 
-            Text(
-                text = CurrencyConverter.formatAmount(expense.amountMVR),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = CurrencyConverter.formatAmount(expense.amountMVR),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                // Synced indicator
+                if (expense.isSynced) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "✓ Synced",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }

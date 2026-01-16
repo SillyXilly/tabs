@@ -58,3 +58,6 @@ vcs.xml
 
 # Misc
 .DS_Store
+
+# Project rules and AI context
+.project_rules/
