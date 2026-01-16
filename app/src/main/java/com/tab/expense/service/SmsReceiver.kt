@@ -7,15 +7,13 @@ import android.provider.Telephony
 import android.telephony.SmsMessage
 import android.util.Log
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
+import com.tab.expense.data.local.preferences.dataStore
 import com.tab.expense.util.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-private val Context.dataStore by preferencesDataStore(name = "settings")
 
 class SmsReceiver : BroadcastReceiver() {
     private val TAG = "SmsReceiver"

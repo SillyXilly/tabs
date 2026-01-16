@@ -6,16 +6,14 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.tab.expense.data.local.database.ExpenseDao
+import com.tab.expense.data.local.preferences.dataStore
 import com.tab.expense.data.remote.GoogleSheetsService
 import com.tab.expense.util.Constants
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-
-private val Context.dataStore by preferencesDataStore(name = "settings")
 
 /**
  * WorkManager worker for reliably syncing expenses to Google Sheets

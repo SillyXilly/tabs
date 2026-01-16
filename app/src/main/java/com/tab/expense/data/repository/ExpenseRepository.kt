@@ -3,12 +3,12 @@ package com.tab.expense.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.work.*
 import com.tab.expense.data.local.database.ExpenseDao
 import com.tab.expense.data.local.database.CategoryDao
 import com.tab.expense.data.local.entity.Expense
 import com.tab.expense.data.local.entity.Category
+import com.tab.expense.data.local.preferences.dataStore
 import com.tab.expense.data.remote.GoogleSheetsService
 import com.tab.expense.util.Constants
 import com.tab.expense.worker.SyncExpenseWorker
@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.map
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
-
-private val Context.dataStore by preferencesDataStore(name = "settings")
 
 @Singleton
 class ExpenseRepository @Inject constructor(
