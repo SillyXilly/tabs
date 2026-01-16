@@ -2,7 +2,38 @@
   "permissions": {
     "allow": [
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git config:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Tab Expense Tracker\n\nImplemented core features:\n- MVVM architecture with Jetpack Compose\n- Room database for local storage\n- Google Sheets API integration\n- SMS parsing with regex patterns\n- Currency toggle \\(MVR/USD conversion\\)\n- Notification service for SMS detection\n- Material Design 3 theming \\(light/dark mode\\)\n- GitHub Actions CI/CD workflow\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(./gradlew wrapper:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "Bash(reference: parse\" compilation error.\n\nAll 6 SMS patterns are still supported.\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(done)",
+      "Bash(grep:*)",
+      "Bash(./gradlew:*)",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); git push origin main')",
+      "Bash(powershell.exe -Command '$token = & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token; git -c \"\"http.extraheader=AUTHORIZATION: bearer $token\"\" push origin main')",
+      "Bash(powershell.exe -Command '& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth setup-git')",
+      "Bash(powershell.exe -Command 'git push origin main')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run watch --interval 5')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run list --repo SillyXilly/tabs --limit 1')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run view 21025986505')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run download 21025986505 -n tab-debug-apk')",
+      "Bash(git reset:*)",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run view 21034908208 --log-failed')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run view 21034908208')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run view 21034908208 --log-failed --job 60480035521')",
+      "Bash(powershell.exe -Command '$env:GH_TOKEN = \\(& \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" auth token\\); & \"\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\"\" run view 21035465583 --log-failed')",
+      "Bash(gh run list:*)",
+      "Bash(where gh:*)",
+      "Bash(wc:*)",
+      "Bash(git -C /d/Projects/tabs log --oneline)",
+      "Bash(gh run view:*)"
     ]
   }
 }

@@ -24,7 +24,8 @@ object NotificationService {
         originalCurrency: String? = null
     ) {
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // Use SINGLE_TOP to reuse existing activity instead of clearing task
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra(Constants.EXTRA_EXPENSE_DATE, date)
             putExtra(Constants.EXTRA_EXPENSE_DESCRIPTION, description)
             putExtra(Constants.EXTRA_EXPENSE_AMOUNT, amount)

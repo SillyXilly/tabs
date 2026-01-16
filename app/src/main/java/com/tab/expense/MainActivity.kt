@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.tab.expense.ui.navigation.TabNavHost
@@ -49,12 +50,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TabNavHost(
-                        openExpenseConfirmation = intent.getBooleanExtra("open_expense_confirmation", false),
-                        expenseDate = intent.getLongExtra(Constants.EXTRA_EXPENSE_DATE, System.currentTimeMillis()),
-                        expenseDescription = intent.getStringExtra(Constants.EXTRA_EXPENSE_DESCRIPTION),
-                        expenseAmount = intent.getDoubleExtra(Constants.EXTRA_EXPENSE_AMOUNT, 0.0)
-                    )
+                    handleIntentAndNavigate()
                 }
             }
         }
@@ -62,7 +58,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        setIntent(intent)
+        intent?.let {
+            android.util.Log.d("MainActivity", "onNewIntent called with expense data")
+            setIntent(it)
+            // Recreate to trigger recomposition with new intent
+            recreate()
+        }
+    }
+
+    @Composable
+    private fun handleIntentAndNavigate() {
+        TabNavHost(
+            openExpenseConfirmation = intent.getBooleanExtra("open_expense_confirmation", false),
+            expenseDate = intent.getLongExtra(Constants.EXTRA_EXPENSE_DATE, System.currentTimeMillis()),
+            expenseDescription = intent.getStringExtra(Constants.EXTRA_EXPENSE_DESCRIPTION),
+            expenseAmount = intent.getDoubleExtra(Constants.EXTRA_EXPENSE_AMOUNT, 0.0)
+        )
     }
 
     private fun requestPermissionsIfNeeded() {

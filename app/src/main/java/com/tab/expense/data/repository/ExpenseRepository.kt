@@ -41,28 +41,38 @@ class ExpenseRepository @Inject constructor(
     suspend fun getExpenseById(id: Long): Expense? = expenseDao.getExpenseById(id)
 
     suspend fun insertExpense(expense: Expense): Long {
+        android.util.Log.d("ExpenseRepository", "=== INSERT EXPENSE START ===")
+        android.util.Log.d("ExpenseRepository", "Expense details: desc=${expense.description}, amount=${expense.amountMVR}, date=${expense.date}")
+
         // Normalize date to midnight (ignore time)
         val normalizedExpense = expense.copy(date = normalizeToMidnight(expense.date))
+        android.util.Log.d("ExpenseRepository", "Date normalized to midnight: ${normalizedExpense.date}")
 
-        // Save to Google Sheets first
-        val success = syncExpenseToSheets(normalizedExpense)
+        // Save to local DB immediately (fast, always works)
+        val id = expenseDao.insertExpense(normalizedExpense)
+        android.util.Log.d("ExpenseRepository", "✓ Expense saved to local DB with ID: $id")
 
-        if (!success) {
-            // Throw exception if sync fails - no fallback
-            throw Exception("Failed to sync expense to Google Sheets. Please check your internet connection and Sheets configuration.")
-        }
-
-        // Refresh from Sheets in background (non-blocking)
-        android.util.Log.d("ExpenseRepository", "Expense saved to Sheets, triggering background refresh")
+        // Sync to Google Sheets in background (don't block user)
+        android.util.Log.d("ExpenseRepository", "Starting background sync to Google Sheets...")
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                refreshFromSheets()
+                val syncSuccess = syncExpenseToSheets(normalizedExpense.copy(id = id))
+                if (syncSuccess) {
+                    android.util.Log.d("ExpenseRepository", "✓ Background sync successful")
+                    // After successful sync, clear local DB and refresh from Sheets
+                    android.util.Log.d("ExpenseRepository", "Triggering refresh from Sheets...")
+                    refreshFromSheets()
+                    android.util.Log.d("ExpenseRepository", "✓ Refresh completed")
+                } else {
+                    android.util.Log.w("ExpenseRepository", "⚠ Background sync failed, expense will be synced later")
+                }
             } catch (e: Exception) {
-                android.util.Log.e("ExpenseRepository", "Background refresh failed: ${e.message}", e)
+                android.util.Log.e("ExpenseRepository", "✗ Background sync exception: ${e.message}", e)
             }
         }
 
-        return 0L // ID will be assigned from Sheets on next refresh
+        android.util.Log.d("ExpenseRepository", "=== INSERT EXPENSE END (ID: $id) ===")
+        return id
     }
 
     suspend fun updateExpense(expense: Expense) {
