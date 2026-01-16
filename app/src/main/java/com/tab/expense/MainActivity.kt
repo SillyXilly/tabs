@@ -64,6 +64,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Log app version for debugging
+        android.util.Log.d("MainActivity", "========================================")
+        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.0.1-crash-fix")
+        android.util.Log.d("MainActivity", "StateFlow Navigation Fix Applied")
+        android.util.Log.d("MainActivity", "========================================")
+
         requestPermissionsIfNeeded()
 
         // Handle initial intent on cold start
