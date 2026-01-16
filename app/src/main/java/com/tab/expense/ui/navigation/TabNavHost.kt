@@ -43,7 +43,7 @@ fun TabNavHost() {
         }
 
         composable(
-            route = "entry?date={date}&description={description}&amount={amount}",
+            route = "entry?date={date}&description={description}&amount={amount}&expenseId={expenseId}",
             arguments = listOf(
                 navArgument("date") {
                     type = NavType.LongType
@@ -57,15 +57,21 @@ fun TabNavHost() {
                 navArgument("amount") {
                     type = NavType.FloatType
                     defaultValue = 0f
+                },
+                navArgument("expenseId") {
+                    type = NavType.LongType
+                    defaultValue = 0L
                 }
             )
         ) { backStackEntry ->
             val date = backStackEntry.arguments?.getLong("date") ?: 0L
             val description = backStackEntry.arguments?.getString("description")
             val amount = backStackEntry.arguments?.getFloat("amount") ?: 0f
+            val expenseId = backStackEntry.arguments?.getLong("expenseId") ?: 0L
 
             ManualEntryScreen(
                 navController = navController,
+                expenseId = if (expenseId > 0) expenseId else null,
                 prefilledDate = if (date > 0) date else null,
                 prefilledDescription = description,
                 prefilledAmount = if (amount > 0) amount.toDouble() else null

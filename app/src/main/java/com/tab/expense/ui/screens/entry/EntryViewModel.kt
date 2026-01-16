@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class EntryUiState(
+    val expenseId: Long? = null,
     val date: Long = System.currentTimeMillis(),
     val selectedCategory: Category? = null,
     val categories: List<Category> = emptyList(),
@@ -23,7 +24,9 @@ data class EntryUiState(
     val amount: String = "",
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
-    val error: String? = null
+    val isDeleted: Boolean = false,
+    val error: String? = null,
+    val showDeleteDialog: Boolean = false
 )
 
 @HiltViewModel
@@ -72,6 +75,33 @@ class EntryViewModel @Inject constructor(
         }
     }
 
+    fun loadExpense(expenseId: Long) {
+        viewModelScope.launch {
+            try {
+                val expense = repository.getExpenseById(expenseId)
+                if (expense != null) {
+                    // Find matching category
+                    val category = _uiState.value.categories.find {
+                        it.name.equals(expense.category, ignoreCase = true)
+                    }
+
+                    _uiState.value = _uiState.value.copy(
+                        expenseId = expenseId,
+                        date = expense.date,
+                        selectedCategory = category ?: _uiState.value.categories.firstOrNull(),
+                        description = expense.description,
+                        selectedCurrency = expense.originalCurrency,
+                        amount = expense.originalAmount.toString()
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to load expense: ${e.message}"
+                )
+            }
+        }
+    }
+
     fun saveExpense() {
         val state = _uiState.value
 
@@ -104,6 +134,7 @@ class EntryViewModel @Inject constructor(
                 }
 
                 val expense = Expense(
+                    id = state.expenseId ?: 0,
                     date = state.date,
                     category = state.selectedCategory?.name ?: "Other",
                     description = state.description,
@@ -112,7 +143,13 @@ class EntryViewModel @Inject constructor(
                     originalAmount = amountValue
                 )
 
-                repository.insertExpense(expense)
+                if (state.expenseId != null) {
+                    // Update existing expense
+                    repository.updateExpense(expense)
+                } else {
+                    // Insert new expense
+                    repository.insertExpense(expense)
+                }
 
                 _uiState.value = state.copy(
                     isLoading = false,
@@ -122,6 +159,40 @@ class EntryViewModel @Inject constructor(
                 _uiState.value = state.copy(
                     isLoading = false,
                     error = "Failed to save expense: ${e.message}"
+                )
+            }
+        }
+    }
+
+    fun showDeleteDialog() {
+        _uiState.value = _uiState.value.copy(showDeleteDialog = true)
+    }
+
+    fun hideDeleteDialog() {
+        _uiState.value = _uiState.value.copy(showDeleteDialog = false)
+    }
+
+    fun deleteExpense() {
+        val state = _uiState.value
+        val expenseId = state.expenseId ?: return
+
+        _uiState.value = state.copy(
+            isLoading = true,
+            showDeleteDialog = false,
+            error = null
+        )
+
+        viewModelScope.launch {
+            try {
+                repository.deleteExpenseById(expenseId)
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    isDeleted = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    error = "Failed to delete expense: ${e.message}"
                 )
             }
         }

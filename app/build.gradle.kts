@@ -13,8 +13,8 @@ android {
         applicationId = "com.tab.expense"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.0.3-datastore-fix"
+        versionCode = 5
+        versionName = "1.1.0-edit-delete"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

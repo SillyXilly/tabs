@@ -122,7 +122,9 @@ fun SummaryScreen(
                 items(uiState.expenses) { expense ->
                     ExpenseCard(
                         expense = expense,
-                        onClick = { /* TODO: Navigate to expense details */ }
+                        onClick = {
+                            navController.navigate("entry?expenseId=${expense.id}")
+                        }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }

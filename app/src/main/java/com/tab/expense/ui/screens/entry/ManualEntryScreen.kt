@@ -26,15 +26,23 @@ import java.util.*
 fun ManualEntryScreen(
     navController: NavController,
     viewModel: EntryViewModel = hiltViewModel(),
+    expenseId: Long? = null,
     prefilledDate: Long? = null,
     prefilledDescription: String? = null,
     prefilledAmount: Double? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Pre-fill data from SMS notification
+    // Load existing expense if editing
+    LaunchedEffect(expenseId) {
+        if (expenseId != null) {
+            viewModel.loadExpense(expenseId)
+        }
+    }
+
+    // Pre-fill data from SMS notification (only if not editing)
     LaunchedEffect(prefilledDate, prefilledDescription, prefilledAmount) {
-        if (prefilledDate != null || prefilledDescription != null || prefilledAmount != null) {
+        if (expenseId == null && (prefilledDate != null || prefilledDescription != null || prefilledAmount != null)) {
             viewModel.prefillData(
                 date = prefilledDate,
                 description = prefilledDescription,
@@ -43,9 +51,9 @@ fun ManualEntryScreen(
         }
     }
 
-    // Navigate back when saved
-    LaunchedEffect(uiState.isSaved) {
-        if (uiState.isSaved) {
+    // Navigate back when saved or deleted
+    LaunchedEffect(uiState.isSaved, uiState.isDeleted) {
+        if (uiState.isSaved || uiState.isDeleted) {
             navController.popBackStack()
         }
     }
@@ -59,12 +67,36 @@ fun ManualEntryScreen(
         }
     }
 
+    // Delete confirmation dialog
+    if (uiState.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hideDeleteDialog() },
+            title = { Text("Delete Expense?") },
+            text = { Text("Are you sure you want to delete this expense? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.deleteExpense() },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideDeleteDialog() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Add Expense",
+                        text = if (uiState.expenseId != null) "Edit Expense" else "Add Expense",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -235,7 +267,30 @@ fun ManualEntryScreen(
                     )
                 } else {
                     Text(
-                        text = "Add Expense",
+                        text = if (uiState.expenseId != null) "Save Changes" else "Add Expense",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // Delete Button (only show when editing)
+            if (uiState.expenseId != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = { viewModel.showDeleteDialog() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !uiState.isLoading,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text(
+                        text = "Delete Expense",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
