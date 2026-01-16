@@ -66,8 +66,8 @@ class MainActivity : ComponentActivity() {
 
         // Log app version for debugging
         android.util.Log.d("MainActivity", "========================================")
-        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.0.1-crash-fix")
-        android.util.Log.d("MainActivity", "StateFlow Navigation Fix Applied")
+        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.0.2-worker-fix")
+        android.util.Log.d("MainActivity", "WorkManager Return Statement Fix Applied")
         android.util.Log.d("MainActivity", "========================================")
 
         requestPermissionsIfNeeded()
