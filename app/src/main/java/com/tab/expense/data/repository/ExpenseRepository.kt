@@ -76,21 +76,45 @@ class ExpenseRepository @Inject constructor(
 
     private suspend fun syncExpenseToSheets(expense: Expense) {
         try {
-            val spreadsheetId = getSpreadsheetId() ?: return
-            val sheetName = getSheetName() ?: return
-            val credentials = getApiCredentials() ?: return
+            android.util.Log.d("ExpenseRepository", "Attempting to sync expense: id=${expense.id}, desc=${expense.description}, amount=${expense.amountMVR}")
 
-            if (!googleSheetsService.initialize(credentials)) {
+            val spreadsheetId = getSpreadsheetId()
+            if (spreadsheetId == null) {
+                android.util.Log.w("ExpenseRepository", "Sync skipped: No spreadsheet ID configured")
                 return
             }
 
+            val sheetName = getSheetName()
+            if (sheetName == null) {
+                android.util.Log.w("ExpenseRepository", "Sync skipped: No sheet name configured")
+                return
+            }
+
+            val credentials = getApiCredentials()
+            if (credentials == null) {
+                android.util.Log.w("ExpenseRepository", "Sync skipped: No API credentials configured")
+                return
+            }
+
+            android.util.Log.d("ExpenseRepository", "Initializing Google Sheets service")
+            if (!googleSheetsService.initialize(credentials)) {
+                android.util.Log.e("ExpenseRepository", "Failed to initialize Google Sheets service")
+                return
+            }
+
+            android.util.Log.d("ExpenseRepository", "Ensuring header row exists")
             googleSheetsService.ensureHeaderRow(spreadsheetId, sheetName)
 
+            android.util.Log.d("ExpenseRepository", "Appending expense to sheet: $sheetName")
             val success = googleSheetsService.appendExpense(spreadsheetId, sheetName, expense)
             if (success) {
+                android.util.Log.d("ExpenseRepository", "Successfully synced expense ${expense.id}")
                 expenseDao.markAsSynced(expense.id)
+            } else {
+                android.util.Log.e("ExpenseRepository", "Failed to append expense to sheet")
             }
         } catch (e: Exception) {
+            android.util.Log.e("ExpenseRepository", "Exception during sync: ${e.message}", e)
             // Expense will remain unsynced and will be synced later
         }
     }
@@ -170,18 +194,35 @@ class ExpenseRepository @Inject constructor(
 
     suspend fun syncExpensesFromSheets() {
         val expenses = fetchExpensesFromSheets()
+        val allLocalExpenses = expenseDao.getAllExpenses().first()
+
         expenses.forEach { expense ->
             // Check if expense already exists (by date, category, description, amount)
-            val existing = expenseDao.getAllExpenses().first().find {
-                it.date == expense.date &&
-                it.category == expense.category &&
-                it.description == expense.description &&
-                it.amountMVR == expense.amountMVR
+            // We consider it a duplicate if:
+            // 1. Same date (within same day)
+            // 2. Same category
+            // 3. Same description
+            // 4. Same amount
+            // This prevents duplicates from being inserted when fetching from Sheets
+            val isDuplicate = allLocalExpenses.any { local ->
+                local.category == expense.category &&
+                local.description.equals(expense.description, ignoreCase = true) &&
+                kotlin.math.abs(local.amountMVR - expense.amountMVR) < 0.01 &&
+                isSameDay(local.date, expense.date)
             }
-            if (existing == null) {
-                expenseDao.insertExpense(expense)
+
+            if (!isDuplicate) {
+                // Mark as synced since it came from Sheets
+                expenseDao.insertExpense(expense.copy(isSynced = true))
             }
         }
+    }
+
+    private fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean {
+        val cal1 = java.util.Calendar.getInstance().apply { timeInMillis = timestamp1 }
+        val cal2 = java.util.Calendar.getInstance().apply { timeInMillis = timestamp2 }
+        return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
+               cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR)
     }
 
     // Category operations
