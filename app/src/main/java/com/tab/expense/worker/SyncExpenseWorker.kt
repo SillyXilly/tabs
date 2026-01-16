@@ -87,7 +87,7 @@ class SyncExpenseWorker @AssistedInject constructor(
             Log.d(TAG, "Appending expense to sheet")
             val success = googleSheetsService.appendExpense(spreadsheetId, sheetName, expense)
 
-            if (success) {
+            return if (success) {
                 Log.d(TAG, "✓ Successfully synced expense $expenseId to Google Sheets")
 
                 // Mark as synced

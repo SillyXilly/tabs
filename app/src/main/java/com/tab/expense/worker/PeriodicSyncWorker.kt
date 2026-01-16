@@ -101,14 +101,14 @@ class PeriodicSyncWorker @AssistedInject constructor(
             Log.d(TAG, "=== PERIODIC SYNC COMPLETED: $successCount synced, $failCount failed ===")
 
             // If all failed, retry
-            if (failCount > 0 && successCount == 0) {
+            return if (failCount > 0 && successCount == 0) {
                 Result.retry()
             } else {
                 Result.success()
             }
         } catch (e: Exception) {
             Log.e(TAG, "✗ Exception during periodic sync: ${e.message}", e)
-            Result.retry()
+            return Result.retry()
         }
     }
 
