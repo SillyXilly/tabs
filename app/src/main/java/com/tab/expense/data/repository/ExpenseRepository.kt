@@ -11,9 +11,12 @@ import com.tab.expense.data.local.entity.Category
 import com.tab.expense.data.remote.GoogleSheetsService
 import com.tab.expense.util.Constants
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -51,7 +54,7 @@ class ExpenseRepository @Inject constructor(
 
         // Refresh from Sheets in background (non-blocking)
         android.util.Log.d("ExpenseRepository", "Expense saved to Sheets, triggering background refresh")
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 refreshFromSheets()
             } catch (e: Exception) {
