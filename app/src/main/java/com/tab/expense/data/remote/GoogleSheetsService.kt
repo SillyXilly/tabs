@@ -24,6 +24,7 @@ class GoogleSheetsService(
 
     /**
      * Initialize Google Sheets service with credentials
+     * Always re-creates the service to ensure fresh state
      */
     suspend fun initialize(credentialsJson: String): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -32,8 +33,6 @@ class GoogleSheetsService(
 
             // Clean up the JSON string - remove any extra whitespace and ensure proper formatting
             val cleanedJson = credentialsJson.trim()
-            Log.d(TAG, "First 50 chars: ${cleanedJson.take(50)}")
-            Log.d(TAG, "Last 50 chars: ${cleanedJson.takeLast(50)}")
 
             val jsonInputStream = ByteArrayInputStream(cleanedJson.toByteArray(Charsets.UTF_8))
             val credentials = GoogleCredentials
@@ -43,6 +42,7 @@ class GoogleSheetsService(
             val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
             val jsonFactory = GsonFactory.getDefaultInstance()
 
+            // Always create a fresh service instance
             sheetsService = Sheets.Builder(
                 httpTransport,
                 jsonFactory,
@@ -57,6 +57,7 @@ class GoogleSheetsService(
             Log.e(TAG, "Failed to initialize Google Sheets service: ${e.javaClass.simpleName}", e)
             Log.e(TAG, "Error message: ${e.message}")
             Log.e(TAG, "Error details: ${e.localizedMessage}")
+            sheetsService = null
             false
         }
     }

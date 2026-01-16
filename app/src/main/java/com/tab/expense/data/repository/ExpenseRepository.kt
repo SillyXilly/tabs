@@ -44,16 +44,22 @@ class ExpenseRepository @Inject constructor(
         // Save to Google Sheets first
         val success = syncExpenseToSheets(normalizedExpense)
 
-        if (success) {
-            // Clear local DB and refresh from Sheets to ensure consistency
-            android.util.Log.d("ExpenseRepository", "Expense saved to Sheets, refreshing from Sheets")
-            refreshFromSheets()
-            return 0L // ID will be assigned from Sheets
-        } else {
-            // Fallback: save locally if Sheets sync fails
-            android.util.Log.w("ExpenseRepository", "Sheets sync failed, saving locally")
-            return expenseDao.insertExpense(normalizedExpense)
+        if (!success) {
+            // Throw exception if sync fails - no fallback
+            throw Exception("Failed to sync expense to Google Sheets. Please check your internet connection and Sheets configuration.")
         }
+
+        // Refresh from Sheets in background (non-blocking)
+        android.util.Log.d("ExpenseRepository", "Expense saved to Sheets, triggering background refresh")
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                refreshFromSheets()
+            } catch (e: Exception) {
+                android.util.Log.e("ExpenseRepository", "Background refresh failed: ${e.message}", e)
+            }
+        }
+
+        return 0L // ID will be assigned from Sheets on next refresh
     }
 
     suspend fun updateExpense(expense: Expense) {
