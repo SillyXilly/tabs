@@ -105,6 +105,10 @@ class ExpenseRepository @Inject constructor(
         expenseDao.deleteExpense(expense)
     }
 
+    suspend fun deleteExpenseById(id: Long) {
+        expenseDao.deleteExpenseById(id)
+    }
+
 
     // Sync operations
     suspend fun syncUnsyncedExpenses(): Boolean {
