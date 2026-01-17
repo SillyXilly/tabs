@@ -60,7 +60,7 @@ object NotificationParser {
 
             return ParsedExpense(
                 date = timestamp,
-                description = "Transfer to $formattedRecipient",
+                description = formattedRecipient,
                 amount = finalAmount,
                 currency = finalCurrency,
                 originalAmount = originalAmount,

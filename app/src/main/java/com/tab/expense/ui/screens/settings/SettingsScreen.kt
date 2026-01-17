@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.tab.expense.ui.components.NotificationAccessCard
+import com.tab.expense.ui.components.SmsPermissionCard
+import com.tab.expense.ui.components.NotificationPermissionCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,11 +108,19 @@ fun SettingsScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Expense Detection Section
-            SectionHeader("Expense Detection")
+            // Permissions Section
+            SectionHeader("Permissions")
             Spacer(modifier = Modifier.height(15.dp))
 
             NotificationAccessCard()
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            SmsPermissionCard()
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            NotificationPermissionCard()
 
             Spacer(modifier = Modifier.height(30.dp))
 
