@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.tab.expense.ui.components.NotificationAccessCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +105,14 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(20.dp))
+
+            // Expense Detection Section
+            SectionHeader("Expense Detection")
+            Spacer(modifier = Modifier.height(15.dp))
+
+            NotificationAccessCard()
+
+            Spacer(modifier = Modifier.height(30.dp))
 
             // Google Sheets Integration Section
             SectionHeader("Google Sheets Integration")

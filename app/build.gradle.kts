@@ -13,8 +13,8 @@ android {
         applicationId = "com.tab.expense"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.2.0-id-based-sync"
+        versionCode = 8
+        versionName = "1.3.0-notification-listener"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

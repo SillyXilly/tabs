@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import com.tab.expense.ui.navigation.TabNavHost
 import com.tab.expense.ui.theme.TabTheme
 import com.tab.expense.util.Constants
+import com.tab.expense.util.NotificationAccessHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,8 +67,8 @@ class MainActivity : ComponentActivity() {
 
         // Log app version for debugging
         android.util.Log.d("MainActivity", "========================================")
-        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.1.1-edit-sync-logs")
-        android.util.Log.d("MainActivity", "Edit Sync Fix + Comprehensive Logging")
+        android.util.Log.d("MainActivity", "Tab Expense Tracker - Version 1.3.0")
+        android.util.Log.d("MainActivity", "Notification Listener + ID-Based Sync")
         android.util.Log.d("MainActivity", "========================================")
 
         requestPermissionsIfNeeded()
@@ -131,6 +132,16 @@ class MainActivity : ComponentActivity() {
         // Request all permissions together
         if (permissionsToRequest.isNotEmpty()) {
             permissionLauncher.launch(permissionsToRequest.toTypedArray())
+        }
+
+        // Check notification access (can't be requested programmatically)
+        if (!NotificationAccessHelper.isNotificationAccessGranted(this)) {
+            android.util.Log.d("MainActivity", "⚠ Notification access not granted")
+            android.util.Log.d("MainActivity", "  User must enable it manually in Settings")
+            android.util.Log.d("MainActivity", "  Go to: Settings → Apps → Special app access → Notification access → Tab")
+        } else {
+            android.util.Log.d("MainActivity", "✓ Notification access granted")
+            android.util.Log.d("MainActivity", "  Bank transfer notifications will be detected")
         }
     }
 }
